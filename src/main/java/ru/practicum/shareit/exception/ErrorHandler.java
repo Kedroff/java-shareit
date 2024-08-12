@@ -18,9 +18,16 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationException(final ValidationException e) {
         log.error(String.format("Исключение %s, текст %s", ValidationException.class, e.getMessage()));
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleNotAvailableForBookingException(final NotAvailableForBookingException e) {
+        log.error(String.format("Исключение %s, текст %s", NotAvailableForBookingException.class, e.getMessage()));
         return new ErrorResponse(e.getMessage());
     }
 
