@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ExceptionUtils;
 import ru.practicum.shareit.exception.NotUniqueEmail;
@@ -18,27 +19,29 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserMapper userMapper;
     private final UserRepository userRepository;
 
     @Override
     public UserInfoResponseDto create(final UserCreateRequestDto userCreateRequestDto) {
-        final User newUser = userMapper.toModel(userCreateRequestDto);
-        if (!userRepository.isUniqueEmail(newUser.getEmail())) {
-            throw new NotUniqueEmail(String.format("Email %s is already exist", newUser.getEmail()));
+        try {
+            final User newUser = UserMapper.toModel(userCreateRequestDto);
+            return UserMapper.toDto(userRepository.save(newUser));
+        } catch (DataIntegrityViolationException e) {
+            throw new NotUniqueEmail(userCreateRequestDto.getEmail());
         }
-        userRepository.saveEmail(newUser.getEmail());
-        return userMapper.toDto(userRepository.persist(newUser));
-
     }
 
     @Override
     public UserInfoResponseDto update(final UserUpdateRequestDto userUpdateRequestDto, final long userId) {
-        final User original = userRepository.get(userId)
-                .orElseThrow(() -> ExceptionUtils.createNotFoundException(userId));
-        final User newUser = userMapper.toModel(userUpdateRequestDto, userId);
-        updateEntityIfCorrect(original, newUser);
-        return userMapper.toDto(userRepository.update(original));
+        try {
+            final User original = userRepository.findById(userId)
+                    .orElseThrow(() -> ExceptionUtils.createNotFoundException(userId));
+            final User newUser = UserMapper.toModel(userUpdateRequestDto, userId);
+            updateEntityIfCorrect(original, newUser);
+            return UserMapper.toDto(userRepository.save(original));
+        } catch (DataIntegrityViolationException e) {
+            throw new NotUniqueEmail(userUpdateRequestDto.getEmail());
+        }
     }
 
     private void updateEntityIfCorrect(final User original, final User newUser) {
@@ -48,11 +51,6 @@ public class UserServiceImpl implements UserService {
 
     private void updateEmailIfCorrect(final User original, final User newUser) {
         if (!Objects.isNull(newUser.getEmail()) && !newUser.getEmail().equals(original.getEmail())) {
-            if (!userRepository.isUniqueEmail(newUser.getEmail())) {
-                throw new NotUniqueEmail(String.format("Email %s is already exist", newUser.getEmail()));
-            }
-            userRepository.removeEmail(original.getEmail());
-            userRepository.saveEmail(newUser.getEmail());
             original.setEmail(newUser.getEmail());
         }
     }
@@ -65,23 +63,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoResponseDto get(final long userId) {
-        return userMapper.toDto(userRepository.get(userId)
+        return UserMapper.toDto(userRepository.findById(userId)
                 .orElseThrow(() -> ExceptionUtils.createNotFoundException(userId)));
     }
 
     @Override
     public List<UserInfoResponseDto> getAll() {
-        return userRepository.getAll().stream()
-                .map(userMapper::toDto)
+        return userRepository.findAll().stream()
+                .map(UserMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void delete(final long userId) {
-        final User original = userRepository.get(userId).orElseThrow(
+        userRepository.findById(userId).orElseThrow(
                 () -> ExceptionUtils.createNotFoundException(userId)
         );
-        userRepository.delete(userId);
-        userRepository.removeEmail(original.getEmail());
+        userRepository.deleteById(userId);
     }
 }

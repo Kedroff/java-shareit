@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ItemUpdateRequestDto {
-    Long id;
-    String name;
-    String description;
-    Boolean available;
+public class CommentInfoResponseDto {
+    long id;
+    String text;
+    String authorName;
+    LocalDateTime created;
 }

@@ -1,46 +1,60 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.ExceptionUtils;
 import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.item.ItemMapper;
+import ru.practicum.shareit.item.dto.CommentAddRequestDto;
+import ru.practicum.shareit.item.dto.CommentInfoResponseDto;
 import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
+import ru.practicum.shareit.item.dto.ItemFullInfoResponseDto;
 import ru.practicum.shareit.item.dto.ItemInfoResponseDto;
 import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
+import ru.practicum.shareit.item.mapper.CommentMapper;
+import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
-    private final ItemMapper itemMapper;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     public ItemInfoResponseDto create(final long userId, final ItemCreateRequestDto itemCreateRequestDto) {
-        checkOwner(userId);
-        final Item newItem = itemMapper.toModel(userId, itemCreateRequestDto);
-        final Item saved = itemRepository.persist(newItem);
-        return itemMapper.toDto(saved);
+        final User owner = getUserOrThrowError(userId);
+        final Item newItem = ItemMapper.toModel(owner, itemCreateRequestDto);
+        final Item saved = itemRepository.save(newItem);
+        return ItemMapper.toDto(saved);
     }
 
     @Override
     public ItemInfoResponseDto update(final long userId, final long itemId,
                                       final ItemUpdateRequestDto itemUpdateRequestDto) {
-        checkOwner(userId);
-        final Item original = itemRepository.get(itemId).orElseThrow(
-                () -> ExceptionUtils.createNotFoundException(itemId));
-        final Item newItem = itemMapper.toModel(userId, itemId, itemUpdateRequestDto);
-        checkAccess(newItem);
+        final User owner = getUserOrThrowError(userId);
+        final Item original = getItemOrThrowError(itemId);
+        final Item newItem = ItemMapper.toModel(owner, original, itemUpdateRequestDto);
         updateEntityIfCorrect(original, newItem);
-        return itemMapper.toDto(itemRepository.update(original));
+        return ItemMapper.toDto(itemRepository.save(original));
 
     }
 
@@ -69,43 +83,60 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemInfoResponseDto get(final long userId, final long itemId) {
-        checkOwner(userId);
-        final Item original = itemRepository.get(itemId).orElseThrow(
-                () -> ExceptionUtils.createNotFoundException(itemId)
-        );
-        return itemMapper.toDto(original);
+    public ItemFullInfoResponseDto get(final long itemId) {
+        final Item original = getItemOrThrowError(itemId);
+        final List<Booking> bookings = bookingRepository.findByItemIdAndBookingStatus(itemId, BookingStatus.APPROVED);
+        final LocalDateTime now = LocalDateTime.now();
+        final Optional<Booking> lastBooking = bookings.stream()
+                .filter(booking -> booking.getEnd().isAfter(now))
+                .max(Comparator.comparing(Booking::getEnd));
+        final Optional<Booking> nextBooking = bookings.stream()
+                .filter(booking -> booking.getStart().isAfter(now))
+                .min(Comparator.comparing(Booking::getStart));
+        final List<Comment> comments = commentRepository.findAllByItemId(itemId);
+        return ItemMapper.toFullDto(original, comments, lastBooking, nextBooking);
     }
 
     @Override
-    public List<ItemInfoResponseDto> getAll(final long userId) {
-        checkOwner(userId);
-        return itemRepository.getAll(userId).stream()
-                .map(itemMapper::toDto)
+    public List<ItemInfoResponseDto> getAll(final long userId, final Pageable pageable) {
+        getUserOrThrowError(userId);
+        return itemRepository.findAllByOwnerId(userId, pageable).stream()
+                .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<ItemInfoResponseDto> search(String text) {
+    public List<ItemInfoResponseDto> search(final String text, final Pageable pageable) {
         if (Objects.isNull(text) || text.isBlank()) {
             return List.of();
         }
-        return itemRepository.search(text.toLowerCase()).stream()
-                .map(itemMapper::toDto)
+        return itemRepository.search(text, pageable).stream()
+                .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
     }
 
-    private void checkOwner(final long userId) {
-        userRepository.get(userId)
+    @Override
+    public CommentInfoResponseDto addComment(final long userId, final long itemId,
+                                             final CommentAddRequestDto requestDto) {
+        final User user = getUserOrThrowError(userId);
+        final Item item = getItemOrThrowError(itemId);
+        final List<Booking> bookings = bookingRepository.findByBookerIdAndItemIdAndBookingStatusAndEndBefore(userId,
+                itemId, BookingStatus.APPROVED, LocalDateTime.now(), PageRequest.of(1 / 10, 1));
+        if (bookings.isEmpty()) {
+            throw new ValidationException(String.format("user = %s didnt book this item = %s", userId, itemId));
+        }
+        final Comment comment = CommentMapper.toModel(user, item, requestDto);
+        comment.setCreated(LocalDateTime.now());
+        return CommentMapper.toDto(commentRepository.save(comment));
+    }
+
+    private User getUserOrThrowError(final long userId) {
+        return userRepository.findById(userId)
                 .orElseThrow(() -> ExceptionUtils.createNotFoundException(userId));
     }
 
-    private void checkAccess(final Item item) {
-        if (!itemRepository.isValidOwner(item)) {
-            throw new ValidationException(
-                    String.format("Forbidden! User = %s don't have permission to access item = %s",
-                            item.getOwner().getId(), item.getId()));
-        }
+    private Item getItemOrThrowError(final long itemId) {
+        return itemRepository.findById(itemId).orElseThrow(
+                () -> ExceptionUtils.createNotFoundException(itemId));
     }
-
 }
