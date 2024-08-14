@@ -42,10 +42,10 @@ public class BookingController {
         return result;
     }
 
-    @PatchMapping("/{bookingId}")
+    @PatchMapping("/{booking_id}")
     @ResponseStatus(HttpStatus.OK)
     BookingInfoResponseDto approve(@RequestHeader(REQUEST_HEADER) final long userId,
-                                   @PathVariable final long bookingId,
+                                   @PathVariable("booking_id") final long bookingId,
                                    @RequestParam final boolean approved) {
         log.info("Request PATCH /bookings/{}?approved={}, userId = {}", bookingId, approved, userId);
         final BookingInfoResponseDto result = bookingService.approve(userId, bookingId, approved);
@@ -54,10 +54,10 @@ public class BookingController {
         return result;
     }
 
-    @GetMapping("/{bookingId}")
+    @GetMapping("/{booking_id}")
     @ResponseStatus(HttpStatus.OK)
     BookingInfoResponseDto getByBookingId(@RequestHeader(REQUEST_HEADER) final long userId,
-                                          @PathVariable final long bookingId) {
+                                          @PathVariable("booking_id") final long bookingId) {
         log.info("Request GET /bookings/{}, userId = {}", bookingId, userId);
         final BookingInfoResponseDto result = bookingService.getByBookingId(userId, bookingId);
         log.info("Response GET /bookings/{}, userId = {}, body = {}", bookingId, userId, result);

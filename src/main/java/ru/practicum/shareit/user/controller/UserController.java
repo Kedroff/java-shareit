@@ -38,19 +38,19 @@ public class UserController {
         return result;
     }
 
-    @PatchMapping("/{userId}")
+    @PatchMapping("/{user_id}")
     @ResponseStatus(HttpStatus.OK)
     public UserInfoResponseDto update(@RequestBody @Valid final UserUpdateRequestDto userUpdateRequestDto,
-                                      @PathVariable("userId") final long userId) {
+                                      @PathVariable("user_id") final long userId) {
         log.info("request PATH /users/{} body = {}", userId, userUpdateRequestDto);
         final UserInfoResponseDto result = userService.update(userUpdateRequestDto, userId);
         log.info("response PATH /users/{} body = {}", userId, result);
         return result;
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/{user_id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserInfoResponseDto get(@PathVariable("userId") final long userId) {
+    public UserInfoResponseDto get(@PathVariable("user_id") final long userId) {
         log.info("request GET /users/{}", userId);
         final UserInfoResponseDto result = userService.get(userId);
         log.info("response GET /users/{} body = {}", userId, result);
@@ -66,9 +66,9 @@ public class UserController {
         return result;
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/{user_id}")
     @ResponseStatus(HttpStatus.OK)
-    public void delete(@PathVariable("userId") final long userId) {
+    public void delete(@PathVariable("user_id") final long userId) {
         log.info("request DELETE /users/{}", userId);
         userService.delete(userId);
         log.info("response DELETE /users/{}", userId);

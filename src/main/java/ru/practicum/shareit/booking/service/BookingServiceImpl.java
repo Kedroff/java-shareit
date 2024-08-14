@@ -66,27 +66,27 @@ public class BookingServiceImpl implements BookingService {
         switch (state) {
             case CURRENT -> {
                 return BookingMapper.toDto(
-                        bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
+                        bookingRepository.findByBookerIdAndStartBetween(userId,
                                 LocalDateTime.now(), LocalDateTime.now(), pageable));
             }
             case PAST -> {
-                return BookingMapper.toDto(bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId,
+                return BookingMapper.toDto(bookingRepository.findByBookerIdAndEndBefore(userId,
                         LocalDateTime.now(), pageable));
             }
             case FUTURE -> {
-                return BookingMapper.toDto(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId,
+                return BookingMapper.toDto(bookingRepository.findByBookerIdAndStartAfter(userId,
                         LocalDateTime.now(), pageable));
             }
             case WAITING -> {
-                return BookingMapper.toDto(bookingRepository.findAllByBookerIdAndBookingStatusOrderByStartDesc(userId,
+                return BookingMapper.toDto(bookingRepository.findByBookerIdAndBookingStatusOrderByStartDesc(userId,
                         BookingStatus.WAITING, pageable));
             }
             case REJECTED -> {
-                return BookingMapper.toDto(bookingRepository.findAllByBookerIdAndBookingStatusOrderByStartDesc(userId,
+                return BookingMapper.toDto(bookingRepository.findByBookerIdAndBookingStatusOrderByStartDesc(userId,
                         BookingStatus.REJECTED, pageable));
             }
         }
-        return BookingMapper.toDto(bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageable));
+        return BookingMapper.toDto(bookingRepository.findByBookerId(userId, pageable));
     }
 
     @Override
@@ -96,31 +96,31 @@ public class BookingServiceImpl implements BookingService {
         switch (state) {
             case CURRENT -> {
                 return BookingMapper.toDto(
-                        bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(ownerId,
+                        bookingRepository.findByItemOwnerIdAndStartBetween(ownerId,
                                 LocalDateTime.now(), LocalDateTime.now(), pageable));
             }
             case PAST -> {
                 return BookingMapper.toDto(
-                        bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(ownerId, LocalDateTime.now(),
+                        bookingRepository.findByItemOwnerIdAndEndBefore(ownerId, LocalDateTime.now(),
                                 pageable));
             }
             case FUTURE -> {
                 return BookingMapper.toDto(
-                        bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(ownerId,
+                        bookingRepository.findByItemOwnerIdAndStartAfter(ownerId,
                                 LocalDateTime.now(), pageable));
             }
             case WAITING -> {
                 return BookingMapper.toDto(
-                        bookingRepository.findAllByItemOwnerIdAndBookingStatusOrderByStartDesc(ownerId,
+                        bookingRepository.findByItemOwnerIdAndBookingStatusOrderByStartDesc(ownerId,
                                 BookingStatus.WAITING, pageable));
             }
             case REJECTED -> {
                 return BookingMapper.toDto(
-                        bookingRepository.findAllByItemOwnerIdAndBookingStatusOrderByStartDesc(ownerId,
+                        bookingRepository.findByItemOwnerIdAndBookingStatusOrderByStartDesc(ownerId,
                                 BookingStatus.REJECTED, pageable));
             }
         }
-        return BookingMapper.toDto(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(ownerId, pageable));
+        return BookingMapper.toDto(bookingRepository.findByItemOwnerId(ownerId, pageable));
     }
 
     private User getUserOrThrowException(final long userId) {

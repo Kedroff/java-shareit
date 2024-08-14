@@ -120,7 +120,7 @@ public class ItemServiceImpl implements ItemService {
                                              final CommentAddRequestDto requestDto) {
         final User user = getUserOrThrowError(userId);
         final Item item = getItemOrThrowError(itemId);
-        final List<Booking> bookings = bookingRepository.findAllByBookerIdAndItemIdAndBookingStatusAndEndBefore(userId,
+        final List<Booking> bookings = bookingRepository.findByBookerIdAndItemIdAndBookingStatusAndEndBefore(userId,
                 itemId, BookingStatus.APPROVED, LocalDateTime.now(), PageRequest.of(1 / 10, 1));
         if (bookings.isEmpty()) {
             throw new ValidationException(String.format("user = %s didnt book this item = %s", userId, itemId));

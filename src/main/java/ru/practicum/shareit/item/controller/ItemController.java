@@ -46,10 +46,10 @@ public class ItemController {
         return result;
     }
 
-    @PatchMapping("/{itemId}")
+    @PatchMapping("/{item_id}")
     @ResponseStatus(HttpStatus.OK)
     public ItemInfoResponseDto updateItem(@RequestHeader(REQUEST_HEADER) final long userId,
-                                          @PathVariable final long itemId,
+                                          @PathVariable("item_id") final long itemId,
                                           @RequestBody @Valid final ItemUpdateRequestDto itemUpdateRequestDto) {
         log.info("request PATCH /items/{} userId = {}, body = {}", itemId, userId, itemUpdateRequestDto);
         final ItemInfoResponseDto result = itemService.update(userId, itemId, itemUpdateRequestDto);
@@ -57,9 +57,9 @@ public class ItemController {
         return result;
     }
 
-    @GetMapping("/{itemId}")
+    @GetMapping("/{item_id}")
     @ResponseStatus(HttpStatus.OK)
-    public ItemFullInfoResponseDto get(@PathVariable final long itemId) {
+    public ItemFullInfoResponseDto get(@PathVariable("item_id") final long itemId) {
         log.info("request GET /items/{} ", itemId);
         final ItemFullInfoResponseDto result = itemService.get(itemId);
         log.info("response GET /items/ body ={}", result);
@@ -89,10 +89,10 @@ public class ItemController {
         return result;
     }
 
-    @PostMapping("/{itemId}/comment")
+    @PostMapping("/{item_id}/comment")
     @ResponseStatus(HttpStatus.OK)
     public CommentInfoResponseDto addComment(@RequestHeader(REQUEST_HEADER) final long userId,
-                                             @PathVariable final long itemId,
+                                             @PathVariable("item_id") final long itemId,
                                              @RequestBody @Valid final CommentAddRequestDto commentAddRequestDto) {
         log.info("request POST /items/{}/comment userId ={}, body = {}", itemId, userId, commentAddRequestDto);
         final CommentInfoResponseDto result = itemService.addComment(userId, itemId, commentAddRequestDto);
