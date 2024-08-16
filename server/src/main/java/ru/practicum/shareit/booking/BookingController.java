@@ -27,18 +27,18 @@ public class BookingController {
 
     }
 
-    @PatchMapping("/{bookingId}")
+    @PatchMapping("/{booking_id}")
     public BookingOutDto approvedBooking(@RequestHeader(userIdHead) final Long userId,
-                                         @PathVariable final Long bookingId,
+                                         @PathVariable("booking_id") final Long bookingId,
                                          @RequestParam final Boolean approved) {
 
         log.info("Patch booking; userId={}, bookingId={}, approved={}", userId, bookingId, approved);
         return bookingService.approvedBooking(userId, bookingId, approved);
     }
 
-    @GetMapping("/{bookingId}")
+    @GetMapping("/{booking_id}")
     public BookingOutDto getBooking(@RequestHeader(userIdHead) final Long userId,
-                                    @PathVariable final Long bookingId) {
+                                    @PathVariable("booking_id") final Long bookingId) {
 
         log.info("Get booking; bookingId={}, userId={}", bookingId, userId);
         return bookingService.getBooking(userId, bookingId);

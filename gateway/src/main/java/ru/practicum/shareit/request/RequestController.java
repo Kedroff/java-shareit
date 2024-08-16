@@ -42,8 +42,8 @@ public class RequestController {
         return client.getAllRequests(userId, from, size);
     }
 
-    @GetMapping("/{requestId}")
-    public ResponseEntity<Object> getRequest(@PathVariable final Long requestId) {
+    @GetMapping("/{request_id}")
+    public ResponseEntity<Object> getRequest(@PathVariable("request_id") final Long requestId) {
 
         log.info("Get request; requestId={}", requestId);
         return client.getRequest(requestId);

@@ -25,8 +25,8 @@ public class ItemController {
         return itemService.createItem(itemDto, userId);
     }
 
-    @PatchMapping("/{itemId}")
-    public ItemOutDto updateItem(@PathVariable final Long itemId,
+    @PatchMapping("/{item_id}")
+    public ItemOutDto updateItem(@PathVariable("item_id") final Long itemId,
                                  @RequestBody final ItemIncDto itemDto,
                                  @RequestHeader(userIdHead) final Long userId) {
 
@@ -34,9 +34,9 @@ public class ItemController {
         return itemService.updateItem(itemId, itemDto, userId);
     }
 
-    @GetMapping("/{itemId}")
+    @GetMapping("/{item_id}")
     public ItemWidthBookingsTimeDto getItem(@RequestHeader(userIdHead) final Long userId,
-                                            @PathVariable final Long itemId) {
+                                            @PathVariable("item_id") final Long itemId) {
 
         log.info("Get Item; userId={}, itemId={} ", userId, itemId);
         return itemService.getItem(itemId, userId);
@@ -58,10 +58,10 @@ public class ItemController {
         return itemService.searchItems(text);
     }
 
-    @PostMapping("/{itemId}/comment")
+    @PostMapping("/{item_id}/comment")
     public CommentOutDto addComment(@RequestHeader(userIdHead) final Long userId,
                                     @RequestBody final CommentIncDto comment,
-                                    @PathVariable final Long itemId) {
+                                    @PathVariable("item_id") final Long itemId) {
 
         log.info("Add Comment; userId={}, itemId={}", userId, itemId);
         return itemService.addComment(comment, itemId, userId);

@@ -27,8 +27,8 @@ public class ItemController {
         return client.createItem(itemDto, userId);
     }
 
-    @PatchMapping("/{itemId}")
-    public ResponseEntity<Object> updateItem(@PathVariable final Long itemId,
+    @PatchMapping("/{item_id}")
+    public ResponseEntity<Object> updateItem(@PathVariable("item_id") final Long itemId,
                                              @RequestBody final ItemIncDto itemDto,
                                              @RequestHeader(userIdHead) final Long userId) {
 
@@ -36,9 +36,9 @@ public class ItemController {
         return client.updateItem(itemId, itemDto, userId);
     }
 
-    @GetMapping("/{itemId}")
+    @GetMapping("/{item_id}")
     public ResponseEntity<Object> getItem(@RequestHeader(userIdHead) final Long userId,
-                                          @PathVariable final Long itemId) {
+                                          @PathVariable("item_id") final Long itemId) {
 
         log.info("GET Item; userId={}, itemId={} ", userId, itemId);
         return client.getItem(userId, itemId);
@@ -60,10 +60,10 @@ public class ItemController {
         return client.searchItems(text);
     }
 
-    @PostMapping("/{itemId}/comment")
+    @PostMapping("/{item_id}/comment")
     public ResponseEntity<Object> addComment(@RequestHeader(userIdHead) final Long userId,
                                              @RequestBody @Valid final CommentDto comment,
-                                             @PathVariable final Long itemId) {
+                                             @PathVariable("item_id") final Long itemId) {
 
         log.info("POST add Comment; userId={}, itemId={}", userId, itemId);
         return client.addComment(userId, comment, itemId);

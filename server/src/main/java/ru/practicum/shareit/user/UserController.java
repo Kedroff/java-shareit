@@ -24,24 +24,24 @@ public class UserController {
         return userService.createUser(userDto);
     }
 
-    @PatchMapping("/{userId}")
-    public UserDto updateUser(@PathVariable final Long userId,
+    @PatchMapping("/{user_id}")
+    public UserDto updateUser(@PathVariable("user_id") final Long userId,
                               @RequestBody final UserDto userDto) {
 
         log.info("PATCH update user; userId={}", userId);
         return userService.updateUser(userId, userDto);
     }
 
-    @GetMapping("/{userId}")
-    public UserDto getUser(@PathVariable final Long userId) {
+    @GetMapping("/{user_id}")
+    public UserDto getUser(@PathVariable("user_id") final Long userId) {
 
         log.info("Get user; userId={}", userId);
         return userService.getUser(userId);
 
     }
 
-    @DeleteMapping("/{userId}")
-    public ResponseToUserDeletion delUser(@PathVariable final Long userId) {
+    @DeleteMapping("/{user_id}")
+    public ResponseToUserDeletion delUser(@PathVariable("user_id") final Long userId) {
 
         log.info("Delete user; userId={}", userId);
         return userService.delUser(userId);

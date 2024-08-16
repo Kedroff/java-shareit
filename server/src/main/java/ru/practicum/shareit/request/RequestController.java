@@ -43,8 +43,8 @@ public class RequestController {
         return requestService.getAllRequests(userId, from, size);
     }
 
-    @GetMapping("/{requestId}")
-    public RequestWithItemDto getRequest(@PathVariable final Long requestId) {
+    @GetMapping("/{request_id}")
+    public RequestWithItemDto getRequest(@PathVariable("request_id") final Long requestId) {
 
         log.info("GET request; requestId={}", requestId);
         return requestService.getRequest(requestId);
